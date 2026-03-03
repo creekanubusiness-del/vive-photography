@@ -1,4 +1,4 @@
-# Vive Photography Backend
+# Vive Photography
 
 ## Overview
 Vive Photography Backend is a scalable backend service designed to power a future public creative platform for photographers and designers. 
