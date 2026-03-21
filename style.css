@@ -1,0 +1,130 @@
+/* 1. RESET & FOUNDATION */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    /* This makes the 'dancing' effect smooth when you resize with your mouse */
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
+}
+
+html, body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; 
+    background-color: #ffffff;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    padding-top: 100px;
+}
+
+/* 2. HORIZONTAL GLASS NAVBAR */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 40px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+}
+
+.nav-left { display: flex; align-items: center; gap: 15px; }
+
+.logo { 
+    color: #e60023; 
+    font-size: 28px; 
+    font-weight: 800; 
+    letter-spacing: -1.5px;
+}
+
+.nav-item {
+    text-decoration: none;
+    color: #111;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 25px;
+}
+
+.nav-item.active { background: #111; color: white; }
+.nav-item:hover:not(.active) { background: #efefef; }
+
+.profile-icon {
+    width: 35px;
+    height: 35px;
+    background: #efefef;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* 3. THE LIQUID WALL (Smart Grid) */
+.gallery-wrapper { 
+    width: 100vw;
+    max-width: 100%;
+    padding: 0 40px; 
+    margin: 0px;
+}
+
+.masonry {
+    /* HONING: Switching to Flexbox for "Auto-Action" */
+    display: block;
+    column-width: 320px; /* Lets images jump to next line automatically */
+    column-gap: 20px;       /* Space between photos */
+    width: 100%;
+}
+
+.masonry-item {
+    /* THE MAGIC LINE: 
+       'flex: 1' tells the image to GROW to fill all white space.
+       '300px' is the base size. The browser does the math for you! */
+    flex: 1 1 300px; 
+    display: flex;
+    min-height: 200px; /* Adjust this to change how tall your cards are */
+    max-height: 400px;
+    height: inherit;
+    border-radius: 20px; 
+    overflow: hidden;
+    background-color: #f7f7f7;
+    position: relative;
+    margin-bottom: 10px;
+
+}
+
+.masonry-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Prevents squashing when the images grow/shrink */
+    border-radius: inherit;
+    display: block;
+}
+
+/* UI/UX INTERACTION */
+.masonry-item:hover {
+    filter: brightness(0.9);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+/* 4. EXTRA LARGE SCREEN PLANNING (Windows 2524px+) */
+@media (min-width: 1800px) {
+    .masonry { gap: 24px; }
+    /* On giant screens, we let them grow even wider */
+    .masonry-item { flex-basis: 400px; } 
+    .gallery-wrapper { padding: 0 40px; }
+}
+
+/* 5. MOBILE SMART-REARRANGE */
+@media (max-width: 600px) { 
+    .masonry-item { flex-basis: 150px; min-height: 250px; } 
+    .gallery-wrapper { padding: 0 10px;}
+    .navbar { padding: 10px 20px; }
+}

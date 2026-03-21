@@ -1,41 +1,98 @@
+require('dotenv').config();
+
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use('/images', express.static(path.join(__dirname, 'images')));
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-app.get("/", (req, res) => {
-  res.send("Vive Photography API is running 🚀");
+const app = express();
+
+/* ---------------- CONFIG ---------------- */
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET
 });
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'images/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+/* -------- SERVE FRONTEND -------- */
+
+app.use(express.static(path.join(__dirname)));
+
+/* -------- CLOUDINARY STORAGE -------- */
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    return {
+      folder: 'vive_photography',
+      allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+      tags: req.body.category ? [req.body.category] : []
+    };
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
+/* ---------------- ROUTES ---------------- */
+
+// Upload Image
 app.post('/upload', upload.single('photo'), (req, res) => {
-  res.json({ message: 'Uploaded!', file: req.file.filename });
-});
-const fs = require('fs');
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
 
-app.get('/photos', (req, res) => {
-  fs.readdir('images', (err, files) => {
-    if (err) return res.status(500).send('Error');
-    res.json(files);
-  });
+    res.json({
+      imageUrl: req.file.path,
+      category: req.body.category
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+// Get Photos (with optional filter)
+app.get('/photos', async (req, res) => {
+  try {
+    const category = req.query.category;
+
+    let expression = 'folder:vive_photography';
+
+    if (category && category !== "all") {
+      expression += ` AND tags:${category}`;
+    }
+
+    const result = await cloudinary.search
+      .expression(expression)
+      .sort_by('created_at', 'desc')
+      .max_results(100)
+      .execute();
+
+    const images = result.resources.map(file => ({
+      url: file.secure_url,
+      tags: file.tags
+    }));
+
+    res.json(images);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ---------------- START SERVER ---------------- */
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log("🚀 Server running on port", PORT);
 });
